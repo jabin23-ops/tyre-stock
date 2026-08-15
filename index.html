@@ -1242,8 +1242,15 @@ function enterShareMode(){
     const sellInput = card.querySelector('.sinput');
     const hasPrice = sellInput && sellInput.value && parseFloat(sellInput.value) > 0;
     if(!hasPrice){ card.classList.add('share-hide'); return; }
-    card.classList.add('share-sel');
-    shareSelected.add(idx);
+    // Road 10 stock starts DE-selected in share mode (tap the card to opt in).
+    const t = lastRes[idx];
+    const isRoad10 = t && (t.loc||'').toLowerCase() === 'road 10';
+    if (isRoad10) {
+      card.classList.add('share-desel');
+    } else {
+      card.classList.add('share-sel');
+      shareSelected.add(idx);
+    }
     if(!card.querySelector('.share-sel-badge')){
       const badge = document.createElement('div');
       badge.className = 'share-sel-badge';
@@ -1252,7 +1259,13 @@ function enterShareMode(){
     }
   });
 
-  if(shareSelected.size === 0){ showToast('Set selling prices before sharing'); exitShareMode(); return; }
+  if(shareSelected.size === 0){
+    // Everything visible is Road 10 (deselected). Nudge the user to tap
+    // Select All or a specific card instead of failing silently.
+    const anyPriced = document.querySelectorAll('.card.share-sel,.card.share-desel').length > 0;
+    if (!anyPriced) { showToast('Set selling prices before sharing'); exitShareMode(); return; }
+    showToast('Road 10 cards are deselected — tap to include or use Select All');
+  }
   updateShareTray();
   const btn = document.getElementById('bshare-btn');
   if(btn){ btn.style.opacity='0.5'; btn.style.pointerEvents='none'; }
@@ -1638,7 +1651,14 @@ function doSearch(){
   }
   updateTray();
 
-  lastRes=RAW.filter(t=>t.w===selW&&t.p===selP&&t.r===selR);
+  lastRes=RAW.filter(t=>t.w===selW&&t.p===selP&&t.r===selR)
+    // Stable sort: push Road 10 stock to the end so the branch is last on
+    // screen, in share-selection, and on the generated PDF.
+    .sort((a,b)=>{
+      const aRd=(a.loc||'').toLowerCase()==='road 10'?1:0;
+      const bRd=(b.loc||'').toLowerCase()==='road 10'?1:0;
+      return aRd-bRd;
+    });
   if(!lastRes.length){showState('none');return;}
   showState('results');
   document.getElementById('rcount').textContent=lastRes.length+' item'+(lastRes.length!==1?'s':'')+' found';
