@@ -1286,12 +1286,13 @@ function exitShareMode(){
 
 function shareToggleCard(idx){
   if(!shareMode) return;
+  const card = document.querySelector(`.card[data-idx="${idx}"]`);
   if(shareSelected.has(idx)){
     shareSelected.delete(idx);
-    document.querySelector(`.card[data-idx="${idx}"]`)?.classList.add('share-desel');
+    if(card){ card.classList.remove('share-sel'); card.classList.add('share-desel'); }
   } else {
     shareSelected.add(idx);
-    document.querySelector(`.card[data-idx="${idx}"]`)?.classList.remove('share-desel');
+    if(card){ card.classList.remove('share-desel'); card.classList.add('share-sel'); }
   }
   updateShareTray();
 }
@@ -1303,12 +1304,14 @@ function shareToggleAll(){
   if(allSelected){
     allPriced.forEach(idx => {
       shareSelected.delete(idx);
-      document.querySelector(`.card[data-idx="${idx}"]`)?.classList.add('share-desel');
+      const c = document.querySelector(`.card[data-idx="${idx}"]`);
+      if(c){ c.classList.remove('share-sel'); c.classList.add('share-desel'); }
     });
   } else {
     allPriced.forEach(idx => {
       shareSelected.add(idx);
-      document.querySelector(`.card[data-idx="${idx}"]`)?.classList.remove('share-desel');
+      const c = document.querySelector(`.card[data-idx="${idx}"]`);
+      if(c){ c.classList.remove('share-desel'); c.classList.add('share-sel'); }
     });
   }
   updateShareTray();
